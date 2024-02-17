@@ -6,29 +6,27 @@ public class Player : MonoBehaviour
 {   
     private static Player instance;
     public int chances = 3;
-    public float interactionRange = 1.5f;
+    public float interactionRange = 1.5f;//Range of the Interactable activation
 
     public float movingSpeed = 10;
+    public float breakingRate = 2;
     public float cameraAccelerationX = 1;
     public float cameraAccelerationY = 0.9f;
 
     [Header("Items")]
     [SerializeField]
-    private LabeledTransform[] itemSlots;
+    private PlayerSlot[] itemSlots;//References to all player slots
     [SerializeField]
-    private Tool leftTool;
-    [SerializeField]
-    private Tool rightTool;
+    private PlayerSlot[] hiddenDuringGameplay;//Items hidden during gameplay to not obscure player vision
+    public Tool leftTool;//Left tool reference
+    public Tool rightTool;//Right tool reference
 
     [Header("Input")]
-    [SerializeField]
-    private float mXInput;
-    [SerializeField]
-    private float mYInput;
-    public Vector3 currentCameraRotation;
+    private float mXInput;//Horizontal mouse input
+    private float mYInput;//Vertical mouse input
+    private Vector3 currentCameraRotation;
 
-    private Vector3 input;
-    private bool allowMovement;
+    private Vector3 input;//Movement input
 
     [Header("References")]
     [SerializeField]
@@ -47,52 +45,56 @@ public class Player : MonoBehaviour
     [SerializeField]
     private Transform head;
 
-    // Start is called before the first frame update
-    void Start()
+    public void Start()
     {
-        if(instance){
+        if(instance && this != instance){
             Destroy(this.gameObject);
-        } else {
+        } 
+        if(instance == null) {
             instance = this;
             rigidbody = GetComponent<Rigidbody>();
         } 
     }
 
     void FixedUpdate(){
-        //Pitch
-        transform.Rotate(0, mXInput * cameraAccelerationX, 0);
         
-        //Yaw
-        currentCameraRotation = head.localEulerAngles;
+        if(!Global.IsGamePaused()){
+            //Player Pitch
+            transform.Rotate(0, mXInput * cameraAccelerationX * Time.fixedDeltaTime, 0);//Rotates whole body
+            
+            //Camera Yaw
+            currentCameraRotation = head.localEulerAngles;//Rotates only the head
 
-        float yRot = (currentCameraRotation.x + 180f) % 360f - 180f; //Fixing innacurate reading
-        yRot -= cameraAccelerationY * mYInput; // Add the mouse input
-        yRot = Mathf.Clamp (yRot, -85f, 85f); // Lock yaw to be between -85 and 85 degrees
+            float yRot = (currentCameraRotation.x + 180f) % 360f - 180f; //Fixing innacurate reading
+            yRot -= cameraAccelerationY * mYInput * Time.fixedDeltaTime; // Add the mouse input
+            yRot = Mathf.Clamp (yRot, -85f, 85f); // Locking yaw between -85 and 85 degrees
 
-        head.localEulerAngles = new Vector3 (yRot, currentCameraRotation.y, currentCameraRotation.z);
+            head.localEulerAngles = new Vector3 (yRot, currentCameraRotation.y, currentCameraRotation.z);
 
-        //Movement
-        if(input.magnitude>0.2f){
-            rigidbody.velocity = transform.rotation * input.normalized * movingSpeed;
+            //Movement
+            if(input.magnitude>0.2f){
+                rigidbody.velocity = transform.rotation * input.normalized * Time.fixedDeltaTime * movingSpeed;
+            } else {
+                //Braking
+                if(rigidbody.velocity.magnitude > 0.5)
+                    rigidbody.velocity = rigidbody.velocity/(1 + Mathf.Abs(breakingRate)*Time.fixedDeltaTime);
+            }
         }
-        
     }
     
     void Update()
     {
         if(!Global.IsGamePaused()){
+            //Movement
             input = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
             mXInput = Input.GetAxis("Mouse X");
             mYInput = Input.GetAxis("Mouse Y");
 
-            //ScrollWheelAction(Input.GetAxis("Mouse ScrollWheel"));//Move to tool classes later;
-
-            if(Input.GetKeyDown(KeyCode.Mouse0))
+            //Interactions
+            if(Input.GetKeyDown(KeyCode.Mouse0) && leftTool)
                 leftTool.Use();
-                //HazardTestBeam();
-            if(Input.GetKeyDown(KeyCode.Mouse1))
+            if(Input.GetKeyDown(KeyCode.Mouse1) && rightTool)
                 rightTool.Use();
-                //ScanTestBeam();
             if(Input.GetKeyDown("e")){
                 Interact();
             }
@@ -100,110 +102,36 @@ public class Player : MonoBehaviour
             PointTools();
         }
 
+        //Misc controls
         if(Input.GetKeyDown(KeyCode.Escape))
             Application.Quit();
         if(Input.GetKeyDown(KeyCode.F5))
             Global.ReloadScene();
-        
     }
 
-    public static void RemoveChance(){
-        instance.chances--;
-        instance.playerUI.SetChances(instance.chances);
-        if( instance.chances <= 0 ){
-            ScoreLogger.CreateSummaryScreen("Failure");
-        }
-    }
-
-    public static void PlaySound(int index, float pitch = 1){
-        if(0 <= index && index < instance.audioClips.Count){
-            instance.audioSource.Stop();
-            instance.audioSource.clip = instance.audioClips[index];
-            instance.audioSource.pitch = pitch;
-            instance.audioSource.Play();
-        }
-    }
-    public static void OnMistake(string mistakeMessage, bool penalize = true,bool quiet = false){
-        ScoreLogger.AddMistake(mistakeMessage);
-        if(penalize)
-            RemoveChance();
-        if(!quiet)
-            PlaySound(0);
-    }
-    public static void SetUI(bool active){
-        instance.playerUI.gameObject.SetActive(active);
-    }
-
-    public void Interact(){
+    //Simple raycase targeting Interactable family of objects
+    private void Interact(){
         int layerMask = 1 << 0;
         RaycastHit hit;
         if( Physics.Raycast (    
                 povCamera.transform.position,
-                povCamera.transform.forward,//TransformDirection(Vector3.forward),
+                povCamera.transform.forward,
                 out hit, 
                 interactionRange, 
                 layerMask
         )){
-            
             Interactable i = hit.transform.GetComponent<Interactable>();
             if(i)
                 i.OnInteraction();
         }
     }
 
-    //MOVE BELOW TO IT'S RESPECTIVE TOOL CLASSES
-    public int debugHazardSetting = 0;
-    public void HazardTestBeam(){
-        int layerMask = LayerMask.GetMask("Default", "Hazard");//1 << 6;
-        RaycastHit hit;
-        if (Physics.Raycast(    povCamera.transform.position,
-                                povCamera.transform.forward,//TransformDirection(Vector3.forward),
-                                out hit, 
-                                Mathf.Infinity, 
-                                layerMask))
-        {
-            Hazard h = hit.transform.GetComponent<Hazard>();
-            if(h)
-                h.OnFix(debugHazardSetting);
-            
-            Debug.Log("Found "+hit.transform.name);
-        }
-    }
-
-    public void ScanTestBeam(){
-        int layerMask = LayerMask.GetMask("Default", "Hazard");//1 << 6;
-        RaycastHit hit;
-        if (Physics.Raycast(    povCamera.transform.position,
-                                povCamera.transform.forward,//TransformDirection(Vector3.forward),
-                                out hit, 
-                                Mathf.Infinity, 
-                                layerMask))
-        {
-            Hazard h = hit.transform.GetComponent<Hazard>();
-            if(h)
-                Debug.Log("Scan of "+hit.transform.name+":"+h.OnScan());
-        }
-    }
-
-    public void ScrollWheelAction(float input){
-        if(Mathf.Abs(input) > 0f){
-            if(input > 0){
-                if(debugHazardSetting < 9)
-                    debugHazardSetting++;
-            } else {
-                if(debugHazardSetting > 0)
-                    debugHazardSetting--;
-            }
-
-            Debug.Log("Tool set to "+debugHazardSetting);
-        }
-    }
-
+    //Rotates tools in the looking direction
     private void PointTools(){
         int layerMask = LayerMask.GetMask("Default");
         RaycastHit hit;
         if (Physics.Raycast(    povCamera.transform.position,
-                                povCamera.transform.forward,//TransformDirection(Vector3.forward),
+                                povCamera.transform.forward,
                                 out hit, 
                                 Mathf.Infinity, 
                                 layerMask))
@@ -212,4 +140,51 @@ public class Player : MonoBehaviour
             handR.forward = (hit.point - handR.position).normalized;
         }
     }
+
+    //Statics
+    private void RemoveChance(){
+        chances--;
+        playerUI.SetChances(instance.chances);
+        if( chances <= 0 ){
+            ScoreLogger.CreateSummaryScreen("Failure");
+        }
+    }
+
+    //General sound player
+    public static void PlaySound(int index, float pitch = 1){
+        if(0 <= index && index < instance.audioClips.Count){
+            instance.audioSource.Stop();
+            instance.audioSource.clip = instance.audioClips[index];
+            instance.audioSource.pitch = pitch;
+            instance.audioSource.Play();
+        }
+    }
+
+    //Invoked whenever player makes a mistake
+    public static void OnMistake(string mistakeMessage, bool penalize = true,bool quiet = false){
+        ScoreLogger.AddMistake(mistakeMessage);
+        if(penalize)
+            instance.RemoveChance();
+        if(!quiet)
+            PlaySound(0);
+    }
+
+    //Enables/disables the UI
+    public static void SetUI(bool active){
+        instance.playerUI.gameObject.SetActive(active);
+    }
+
+    //Enables/disables the attached camera
+    public static void SetCamera(bool enabled){
+        instance.povCamera.enabled = enabled;
+    }
+
+    //Hides (not destroys) items created by PlayerSlots assigned to hiddenDuringGameplay array. 
+    public static void HideObscuringEquipment(bool hide){
+        foreach(PlayerSlot ps in instance.hiddenDuringGameplay){
+            ps.SetVisibility(!hide);
+        }
+    }
+
+    public static Player GetPlayer(){ return instance; }
 }

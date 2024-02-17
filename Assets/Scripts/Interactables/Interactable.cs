@@ -4,9 +4,10 @@ using UnityEngine;
 
 public abstract class Interactable : MonoBehaviour
 {
-    public bool repeatable = false;
+    public bool repeatable = false;//Can Interactable be reused by default
     private bool used = false;
 
+    //Interactable wrapper
     public virtual void OnInteraction(){
         if(!used || repeatable){
             used = true;
@@ -16,6 +17,7 @@ public abstract class Interactable : MonoBehaviour
     }
 
     public void ResetUse(){ used = false; }
-
+    
+    //Main operation
     protected abstract void Interact();
 }

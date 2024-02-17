@@ -10,17 +10,11 @@ public class PlayerUI : MonoBehaviour
     private TextMeshProUGUI timer;
     [SerializeField]
     private Image[] chances;
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
 
-    // Update is called once per frame
     void Update()
     {
         if(timer && !Global.IsGamePaused())
-            timer.text = ScoreLogger.GetTime().ToString("0.##s");
+            timer.text = ScoreLogger.GetTime().ToString("0.00s");//Updates timer in the UI
     }
 
     public void SetChances(int chanceCount){

@@ -18,16 +18,15 @@ public class Room : MonoBehaviour
             h.SetRoom(this);
     }
 
+    //Checks hazards for any remaining mistakes at the end of the session
     public void CheckForRemainingHazards(){
         foreach(Hazard h in hazards){
             h.GetRemainingMistakes();
-            /*if(h.GetStatus()){
-                Player.OnMistake("Did not disarm "+h.name+" in "+name+".", false, true);
-            }*/
         }
     }
 
-    public int GetOvershotDoorCount(){
+    //Returns number of walls that have been overfixed
+    public int GetOvershotWallsCount(){
         int count = 0;
         foreach(Hazard h in hazards){
             if(h is WallHazard && ((WallHazard)h).GetOvershotCount()>0)

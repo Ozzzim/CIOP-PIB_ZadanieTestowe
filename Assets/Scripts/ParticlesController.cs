@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class ParticlesController : MonoBehaviour
 {
+    //Used to control several particle systems at once + audio
     public ParticleSystem[] particles;
     public AudioSource soundEffect;
 

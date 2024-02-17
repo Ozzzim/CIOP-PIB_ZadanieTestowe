@@ -638,6 +638,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6de4c002b3b761c4987e22f684ba022d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  properties: []
+  transformTag: ToolSlot
+  itemType: 0
+  thumbnail: {fileID: 21300000, guid: a7dd8247d38b595419ac0d3268d3daf9, type: 3}
   range: 4
   readingOutput: {fileID: 7824329787290035107}
   raycastOrigin: {fileID: 7375067685251635100}

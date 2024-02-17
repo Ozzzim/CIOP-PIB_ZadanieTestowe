@@ -2,8 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class TwinSlotItem : Item
+public class pueTest : PhysUIElement
 {
-    public string secondTransformName;
-
 }

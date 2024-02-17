@@ -10,7 +10,6 @@ public class WallHazard : Hazard
     [SerializeField]
     private GameObject checkmark;
     public override void OnFix(int hazardSetting){
-        Debug.Log("Wallfix");
         if(active){
             if(hazardSetting > 0){
                 Player.OnMistake("Wrong tool setting on "+ name +" in "+attachedRoom.name+".");
@@ -28,7 +27,7 @@ public class WallHazard : Hazard
         if(active)
             Player.OnMistake("Did not disarm "+name+" in "+attachedRoom.name+".", false, true);
         if(overshot>0)
-            Player.OnMistake("Used tool "+ overshot +" times too many on "+ name +" in "+attachedRoom.name+".",false, true); 
+            Player.OnMistake("Used tool "+ overshot +" "+(overshot>1 ? "times" : "time")+" too many on "+ name +" in "+attachedRoom.name+".",false, true); 
     }
     public override int OnScan(){ return 0; }
     public int GetOvershotCount(){ return overshot;}

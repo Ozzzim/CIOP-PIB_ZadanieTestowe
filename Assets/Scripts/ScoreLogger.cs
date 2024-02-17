@@ -24,7 +24,7 @@ public class ScoreLogger : MonoBehaviour
         } 
     }
 
-    // Update is called once per frame
+    // Counts time spent 
     void Update()
     {
         if(timerOn && !Global.IsGamePaused())
@@ -37,7 +37,6 @@ public class ScoreLogger : MonoBehaviour
     }
 
     public static void AddMistake(string mistakeText){
-        //Debug.Log(mistakeText);
         if(instance)
             instance.mistakes.Add(mistakeText);
     }    
@@ -60,12 +59,13 @@ public class ScoreLogger : MonoBehaviour
         int hazardCount = 0;
         int clearedHazardCount = 0;
         int overshotWallsCount = 0;
-        foreach(Room r in instance.rooms){
+        foreach(Room r in instance.rooms){//Counts hazards, cleared hazards and overshot walls
             r.CheckForRemainingHazards();
-            overshotWallsCount += r.GetOvershotDoorCount();
+            overshotWallsCount += r.GetOvershotWallsCount();
             hazardCount += r.HazardCount();
             clearedHazardCount += r.ClearedHazardCount();
         }
+        //Instantiate summary screen and set data based on above
         Instantiate(instance.summaryScreen).SetData(title, instance.mistakes, GetTime(), instance.rooms.Count, hazardCount, clearedHazardCount, overshotWallsCount);
         
         Player.SetUI(false);

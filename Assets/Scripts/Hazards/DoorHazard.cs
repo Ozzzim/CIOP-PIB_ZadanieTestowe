@@ -4,10 +4,8 @@ using UnityEngine;
 
 public class DoorHazard : Hazard
 {
-
-    [SerializeField]//Remove later
     protected int hazardLevel = 0;
-    private bool exploded = false;
+    private bool broken = false;
     
     [Header("References")]
     [SerializeField]
@@ -29,7 +27,7 @@ public class DoorHazard : Hazard
             else
                 Player.OnMistake("Tool setting too low on "+ door.name +" in "+attachedRoom.name+".");
             gameObject.SetActive(false);
-            exploded = true;
+            broken = true;
         }
     }
     public override int OnScan(){ 
@@ -37,14 +35,13 @@ public class DoorHazard : Hazard
             active = false;
             gameObject.SetActive(false);
             checkmark.SetActive(true);
-            
         }
         return hazardLevel; 
     }
     public override void GetRemainingMistakes(){
-        if(active && !exploded)
+        if(active && !broken)
             Player.OnMistake("Did not disarm "+door.name+" in "+attachedRoom.name+".", false, true);
     }
     public int GetHazardLevel(){ return hazardLevel; }
-    public void Exploded(){exploded = true;}
+    public void Broken(){broken = true;}
 }

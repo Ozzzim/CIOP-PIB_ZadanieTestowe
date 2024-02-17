@@ -25,12 +25,9 @@ public class ToolScanner : Tool
         {
             Hazard h = hit.transform.GetComponent<Hazard>();
             if(h){
-                string output = h.OnScan()+"";
-                Debug.Log("Scan of "+hit.transform.name+":"+output);
-                readingOutput.text = output;
+                readingOutput.text = ""+h.OnScan();
                 audioSource.Play();
             } else {
-                Debug.Log("Scan of "+hit.transform.name);
                 readingOutput.text = "-";
             }
             

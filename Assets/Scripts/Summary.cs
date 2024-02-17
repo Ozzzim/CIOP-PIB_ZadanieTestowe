@@ -23,29 +23,24 @@ public class Summary : MonoBehaviour
             mistakesList.text+=("- "+s+"\n");
     }
 
-    //public void 
-
+    //Output grade based on amount of hazards cleared
     private string GetGrade(int hazardsTotal, int hazardsCleared){
         if(hazardsTotal == 0)
             return "N/A";
-        int result = (int)((float)hazardsCleared/hazardsTotal * 100);
+        float result = (float)hazardsCleared/hazardsTotal * 100;
         switch(result){
-            case int i when i>=96:
+            case float i when i>=96:
                 return "A";
-            case int i when i>=90:
+            case float i when i>=90:
                 return "B";
-            case int i when i>=73:
+            case float i when i>=73:
                 return "C";
-            case int i when i>=50:
+            case float i when i>=50:
                 return "D";
-            case int i when i>=30:
+            case float i when i>=30:
                 return "E";
             default:
                 return "F";
         }
-    }
-
-    public void ScrollTest(){
-        Debug.Log("Skoll");
     }
 }

@@ -13,18 +13,18 @@ public class DoorInteractable : Interactable
 
     protected override void Interact(){
         if(!door.IsMoving()){
-            if(doorHazard.gameObject.activeSelf){//GetStatus()){
-                if(doorHazard.GetHazardLevel()>0){
+            if(doorHazard.gameObject.activeSelf){//If door haven't been disarmed properly
+                if(doorHazard.GetHazardLevel()>0){//If it wasn't disarmed at all
                     door.Open(2);
                     door.Explode();
-                    doorHazard.Exploded();
                     Player.OnMistake("Opened "+ door.name +" before disarming in "+doorHazard.GetRoom().name+".");
-                } else {
+                } else {//If it wasn't scanned at the end
                     Player.OnMistake("Did not scan "+ door.name +" after disarming in "+doorHazard.GetRoom().name+".");
                     door.Open();
                 }
+                doorHazard.Broken();
                 doorHazard.gameObject.SetActive(false);
-            } else {
+            } else {//Regular case
                 if(door.IsOpen()){
                     door.Close();
                 } else {

@@ -33,12 +33,14 @@ public class ToolFixer : Tool
         }
     }
 
+    
     void Update()
     {
         if(!Global.IsGamePaused())
             ScrollWheelAction(Input.GetAxis("Mouse ScrollWheel"));
     }
 
+    //Scrolling controls
     public void ScrollWheelAction(float input){
         if(Mathf.Abs(input) > 0f){
             if(input > 0){
@@ -54,11 +56,10 @@ public class ToolFixer : Tool
                     audioSource_Knobturn.Play();
                 }
             }
-
-            Debug.Log("Tool set to "+hazardSetting);
         }
     }
-
+    
+    //Visual rotation of the dial
     private void RotateKnob(int direction){
         Vector3 rotation = settingKnob.localEulerAngles;
         rotation.y -= direction * 36;
